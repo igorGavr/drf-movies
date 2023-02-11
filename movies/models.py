@@ -145,7 +145,7 @@ class Review(models.Model):
         'self', verbose_name="Родич", on_delete=models.SET_NULL,
         blank=True, null=True
     )
-    movie = models.ForeignKey(Movie, verbose_name="фільм", on_delete=models.CASCADE)
+    movie = models.ForeignKey(Movie, verbose_name="фільм", on_delete=models.CASCADE, related_name='reviews')
 
     def __str__(self):
         return f"{self.name} - {self.movie}"
