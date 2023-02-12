@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Avg
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -20,6 +21,11 @@ class MovieListView(APIView):
         movies = Movie.objects.filter(draft=False).annotate(
             # поверне 0 або 1 , в залежності чи ставив юзер рейтинг даному фільму
             rating_user = models.Count("ratings", filter=models.Q(ratings__ip=get_client_ip(self, request)))
+        ).annotate(
+            # рахуємо середній рейтинг
+            # avg_star = models.Sum(models.F('ratings__star'))/models.Count(models.F('ratings'))
+            # avg_star = models.Sum(models.F('ratings__star'))/models.Count('ratings')
+            avg_star = (Avg("ratings__star"))
         )
         serializer = MovieListSerializer(movies, many=True)
         return Response(serializer.data)

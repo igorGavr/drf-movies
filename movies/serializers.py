@@ -22,10 +22,12 @@ class RecursiveSerializer(serializers.Serializer):
 class MovieListSerializer(serializers.ModelSerializer):
     """Список фільмів"""
     rating_user = serializers.BooleanField()
+    # avg_star = serializers.DecimalField(max_digits=2, decimal_places=1)
+    avg_star = serializers.FloatField()
 
     class Meta:
         model = Movie
-        fields = ("id", "title", "tagline", "category", "rating_user")
+        fields = ("id", "title", "tagline", "category", "rating_user", "avg_star")
 
 
 class ReviewCreateSerializer(serializers.ModelSerializer):
