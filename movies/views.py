@@ -7,6 +7,7 @@ from .serializers import (
     MovieListSerializer,
     MovieDetailSerializer,
     ReviewCreateSerializer,
+    CreateRatingSerializer,
 )
 
 class MovieListView(APIView):
@@ -32,3 +33,23 @@ class ReviewCreateView(APIView):
         if review.is_valid():
             review.save()
         return Response(status=status.HTTP_201_CREATED)
+
+
+class AddStarRatingView(APIView):
+    """Додавання рейтингу фільму"""
+    # метод визначає ip адрес користувача
+    def get_client_ip(self, request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+
+    def post(self, request):
+        serializer = CreateRatingSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(ip=self.get_client_ip(request))
+            return Response(status=status.HTTP_201_CREATED)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
