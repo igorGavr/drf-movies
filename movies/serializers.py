@@ -2,6 +2,23 @@ from rest_framework import serializers
 from .models import Movie, Review
 
 
+class FilterReviewListSerializer(serializers.ListSerializer):
+    """Вивід тільки батьківських коментів"""
+    def to_representation(self, data):
+        # фільтруємо кверісет
+        data = data.filter(parent=None)
+        return super().to_representation(data)
+
+class RecursiveSerializer(serializers.Serializer):
+    """ Рекурсивний вивід дочірніх відгуків"""
+    # value - це значення одного запису з бази даних
+    # в даному методі ми шукаємо всіх наших дітей
+    # які завязані на нашому відгуку
+    def to_representation(self, value):
+        serializer = self.parent.parent.__class__(value, context=self.context)
+        return serializer.data
+
+
 class MovieListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
@@ -15,9 +32,14 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    children = RecursiveSerializer(many=True)
+
+    # для того щоб наш звязок працював, ми додали
+    # в class Review(models.Model) в поле parent - related_name='children'
     class Meta:
+        list_serializer_class = FilterReviewListSerializer
         model = Review
-        fields = ("name", "text", "parent")
+        fields = ("name", "text", "children", "id")
 
 
 class MovieDetailSerializer(serializers.ModelSerializer):

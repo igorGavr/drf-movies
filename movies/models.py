@@ -143,7 +143,7 @@ class Review(models.Model):
     # 'self' - запис буде зсилатися на запис в цій таблиці
     parent = models.ForeignKey(
         'self', verbose_name="Родич", on_delete=models.SET_NULL,
-        blank=True, null=True
+        blank=True, null=True, related_name="children"
     )
     movie = models.ForeignKey(Movie, verbose_name="фільм", on_delete=models.CASCADE, related_name='reviews')
 
