@@ -1,3 +1,4 @@
+from django.db import models
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -9,11 +10,17 @@ from .serializers import (
     ReviewCreateSerializer,
     CreateRatingSerializer,
 )
+from .services import get_client_ip
+
 
 class MovieListView(APIView):
     '''Вивід всіх фільмів'''
     def get(self, request):
-        movies = Movie.objects.filter(draft=False)
+        # фільтруємо наш кверісет та додаємо до кожного movie поле rating_user
+        movies = Movie.objects.filter(draft=False).annotate(
+            # поверне 0 або 1 , в залежності чи ставив юзер рейтинг даному фільму
+            rating_user = models.Count("ratings", filter=models.Q(ratings__ip=get_client_ip(self, request)))
+        )
         serializer = MovieListSerializer(movies, many=True)
         return Response(serializer.data)
 
@@ -37,19 +44,10 @@ class ReviewCreateView(APIView):
 
 class AddStarRatingView(APIView):
     """Додавання рейтингу фільму"""
-    # метод визначає ip адрес користувача
-    def get_client_ip(self, request):
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0]
-        else:
-            ip = request.META.get('REMOTE_ADDR')
-        return ip
-
     def post(self, request):
         serializer = CreateRatingSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(ip=self.get_client_ip(request))
+            serializer.save(ip=get_client_ip(request))
             return Response(status=status.HTTP_201_CREATED)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
