@@ -3,7 +3,7 @@ from django.db.models import Avg
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from rest_framework import generics
+from rest_framework import generics, permissions
 
 from .models import Movie, Actor
 from .serializers import (
@@ -26,6 +26,7 @@ class MovieListView(generics.ListAPIView):
     # якщо додали фільтри в настройки то цю стрічку можна не писати
     # filter_backends = (DjangoFilterBackend, )
     filterset_class = MovieFilter
+    permission_classes = [permissions.IsAuthenticated]
     # це на випадок якщо нам потрібна проста фільтрація на основі рівності
     # filterset_fields = ['title', 'country']
     # ми також можемо виконувати звязаний пошук по полю FK або M2M
