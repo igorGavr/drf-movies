@@ -16,14 +16,21 @@ from .serializers import (
 )
 from .services import get_client_ip, MovieFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
+
 
 
 class MovieListView(generics.ListAPIView):
     '''Вивід всіх фільмів'''
     serializer_class = MovieListSerializer
-    # підключаємо фільтри django
-    filter_backends = (DjangoFilterBackend, )
+    # якщо додали фільтри в настройки то цю стрічку можна не писати
+    # filter_backends = (DjangoFilterBackend, )
     filterset_class = MovieFilter
+    # це на випадок якщо нам потрібна проста фільтрація на основі рівності
+    # filterset_fields = ['title', 'country']
+    # ми також можемо виконувати звязаний пошук по полю FK або M2M
+    # filter_backends = [filters.SearchFilter]
+    # search_fields = ['category__name']
 
     def get_queryset(self):
         # фільтруємо наш кверісет та додаємо до кожного movie поле rating_user
@@ -103,10 +110,14 @@ class AddStarRatingView(generics.CreateAPIView):
 #             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+
 class ActorsListView(generics.ListAPIView):
     """Вивід всіх акторів та режисерів"""
     queryset = Actor.objects.all()
     serializer_class = ActorListSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
+
 
 
 class ActorDetailView(generics.RetrieveAPIView):
