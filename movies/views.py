@@ -14,12 +14,16 @@ from .serializers import (
     ActorListSerializer,
     ActorDetailSerializer
 )
-from .services import get_client_ip
+from .services import get_client_ip, MovieFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 class MovieListView(generics.ListAPIView):
     '''Вивід всіх фільмів'''
     serializer_class = MovieListSerializer
+    # підключаємо фільтри django
+    filter_backends = (DjangoFilterBackend, )
+    filterset_class = MovieFilter
 
     def get_queryset(self):
         # фільтруємо наш кверісет та додаємо до кожного movie поле rating_user
