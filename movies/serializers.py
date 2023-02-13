@@ -4,13 +4,16 @@ from .models import Movie, Review, Rating, Actor
 
 class FilterReviewListSerializer(serializers.ListSerializer):
     """Вивід тільки батьківських коментів"""
+
     def to_representation(self, data):
         # фільтруємо кверісет
         data = data.filter(parent=None)
         return super().to_representation(data)
 
+
 class RecursiveSerializer(serializers.Serializer):
     """ Рекурсивний вивід дочірніх відгуків"""
+
     # value - це значення одного запису з бази даних
     # в даному методі ми шукаємо всіх наших дітей
     # які завязані на нашому відгуку
@@ -21,6 +24,7 @@ class RecursiveSerializer(serializers.Serializer):
 
 class ActorListSerializer(serializers.ModelSerializer):
     """Вивід списку акторів та режисерів"""
+
     class Meta:
         model = Actor
         fields = ("id", "name", "image")
@@ -28,6 +32,7 @@ class ActorListSerializer(serializers.ModelSerializer):
 
 class ActorDetailSerializer(serializers.ModelSerializer):
     """Вивід повного опису актора або режисера"""
+
     class Meta:
         model = Actor
         fields = "__all__"
@@ -77,14 +82,16 @@ class MovieDetailSerializer(serializers.ModelSerializer):
 
 class CreateRatingSerializer(serializers.ModelSerializer):
     """Додавання рейтингу користувачем"""
+
     class Meta:
         model = Rating
-        fields = ("star", "movie")
+        fields = ('star', 'movie')
 
     def create(self, validated_data):
-        rating = Rating.objects.update_or_create(
+
+        rating, created = Rating.objects.update_or_create(
             ip=validated_data.get('ip', None),
             movie=validated_data.get('movie', None),
-            defaults={'star':validated_data.get('star')}
+            defaults={'star': validated_data.get('star')}
         )
         return rating
