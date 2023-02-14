@@ -17,7 +17,31 @@ from .serializers import (
 from .services import get_client_ip, MovieFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
+from rest_framework import viewsets
 
+
+class MovieViewSet(viewsets.ReadOnlyModelViewSet):
+    '''Вивід всіх фільмів'''
+    filterset_class = MovieFilter
+
+    def get_queryset(self):
+        # фільтруємо наш кверісет та додаємо до кожного movie поле rating_user
+        movies = Movie.objects.filter(draft=False).annotate(
+            # поверне 0 або 1 , в залежності чи ставив юзер рейтинг даному фільму
+            rating_user=models.Count("ratings", filter=models.Q(ratings__ip=get_client_ip(self.request)))
+        ).annotate(
+            # рахуємо середній рейтинг
+            # avg_star = models.Sum(models.F('ratings__star'))/models.Count(models.F('ratings'))
+            # avg_star = models.Sum(models.F('ratings__star'))/models.Count('ratings')
+            avg_star=(Avg("ratings__star"))
+        )
+        return movies
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return MovieListSerializer
+        elif self.action == 'retrieve':
+            return MovieDetailSerializer
 
 
 class MovieListView(generics.ListAPIView):
@@ -78,6 +102,12 @@ class MovieDetailView(generics.RetrieveAPIView):
 #         serializer = MovieDetailSerializer(movie)
 #         return Response(serializer.data)
 
+
+# CRUD+LIST
+class ReviewCreateViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewCreateSerializer
+
+
 class ReviewCreateView(generics.CreateAPIView):
     serializer_class = ReviewCreateSerializer
 
@@ -90,6 +120,14 @@ class ReviewCreateView(generics.CreateAPIView):
 #         if review.is_valid():
 #             review.save()
 #         return Response(status=status.HTTP_201_CREATED)
+
+
+class AddStarRatingViewSet(viewsets.ModelViewSet):
+    serializer_class = CreateRatingSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(ip = get_client_ip(self.request))
+
 
 
 class AddStarRatingView(generics.CreateAPIView):
@@ -110,6 +148,16 @@ class AddStarRatingView(generics.CreateAPIView):
 #         else:
 #             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+
+class ActorsViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вивід всіх акторів та режисерів"""
+    queryset = Actor.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ActorListSerializer
+        elif self.action == 'retrieve':
+            return ActorDetailSerializer
 
 
 class ActorsListView(generics.ListAPIView):
