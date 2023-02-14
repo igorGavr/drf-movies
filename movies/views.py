@@ -14,7 +14,7 @@ from .serializers import (
     ActorListSerializer,
     ActorDetailSerializer
 )
-from .services import get_client_ip, MovieFilter
+from .services import get_client_ip, MovieFilter, PaginationMovies
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from rest_framework import viewsets
@@ -23,6 +23,9 @@ from rest_framework import viewsets
 class MovieViewSet(viewsets.ReadOnlyModelViewSet):
     '''Вивід всіх фільмів'''
     filterset_class = MovieFilter
+    pagination_class = PaginationMovies
+
+
 
     def get_queryset(self):
         # фільтруємо наш кверісет та додаємо до кожного movie поле rating_user
